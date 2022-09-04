@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: eureka-server
+  cloud: 
+   inetutils:
+    use-only-site-local-interfaces: true
+    preferredNetworks: ${PREFERRED_IP_PATTERN}
+  security: 
+    basic: 
+      path: /
+      enabled: ${BASIC_AUTH_ENABLE:false}
+    user: 
+      name: ${BASIC_AUTH_USERNAME:amway}
+      password: ${BASIC_AUTH_PASSWORD:12345678}
+server:
+  port: ${PORT:6080}
+  enable-self-preservation: false
+  eviction-interval-timer-in-ms: 50000
+eureka:
+  instance: 
+    hostname: ${spring.cloud.client.ip-address}
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client: 
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl: 
+     defaultZone: ${EUREKA_SERVICEURL}

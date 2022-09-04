@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-eureka-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 6080
+    targetPort: 6080
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sts-eureka-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    k8s.eip.work/workload: cloud-eureka
+    k8s.eip.work/displayName: 服务注册
+  labels:
+    k8s.eip.work/layer: cloud
+    k8s.eip.work/name: sts-eureka-{{ .Values.name }}
+spec:
+  serviceName: svc-eureka-{{ .Values.name }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+{{ toYaml .Values.labels | trim | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ toYaml .Values.labels | trim | indent 8 }}
+    spec:
+      imagePullSecrets:
+      - name: ali-dev-registry-secret
+      containers:
+      - name: {{ .Values.name }}
+        image: {{ .Values.imageSrc }}:{{ .Values.imageTag }}
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 6080
+        env:
+        - name: EUREKA_INSTANCE_NAME
+          value: eureka
+        - name: SERVER_PORT
+          value: "6080"
+        - name: _JAVA_OPTIONS
+          value: -Xms100m -Xmx1024m
+        - name: PREFERRED_IP_PATTERN
+          value: .*
+        - name: EUREKA_SERVICEURL
+          value: http://sts-eureka-{{ .Values.name }}-0.svc-eureka-{{ .Values.name }}:6080/eureka,http://sts-eureka-{{ .Values.name }}-1.svc-eureka-{{ .Values.name }}:6080/eureka
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-ing-eureka-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: ClusterIP
+  ports:
+  - port: 6080
+    targetPort: 6080
+{{- if eq .Values.env "dev"}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: np-eureka-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: NodePort
+  ports:
+  - port: 6080
+    targetPort: 6080
+{{- end}}
+{{- if eq .Values.env "local"}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: np-eureka-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: NodePort
+  ports:
+  - port: 6080
+    targetPort: 6080
+{{- end}}

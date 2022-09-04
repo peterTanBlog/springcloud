@@ -1,0 +1,71 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rs-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    k8s.eip.work/workload: gateway
+    k8s.eip.work/displayName: gateway
+  labels:
+    k8s.eip.work/layer: gateway
+    k8s.eip.work/name: rs-{{ .Values.name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:   
+    matchLabels:
+{{ toYaml .Values.labels | trim | indent 6 }}
+  template:
+    metadata:
+      labels: 
+{{ toYaml .Values.labels | trim | indent 8 }}
+    spec:
+      {{- if eq .Values.env "dev"}}
+      nodeName: host-35
+      {{- end}}
+      imagePullSecrets:
+      - name: ali-dev-registry-secret
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ .Values.imageSrc }}:{{ .Values.imageTag }}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: {{ .Values.server.ports.default }}
+          env:
+          - name: EUREKA_SERVICEURL
+            {{- if eq .Values.env "local"}}
+            value: {{ .Values.eureka.defaultZone.local }}
+              {{- else if eq .Values.env "localdev"}}
+            value: {{ .Values.eureka.defaultZone.localdev }}
+            {{- else if eq .Values.env "dev"}}
+            value: {{ .Values.eureka.defaultZone.dev }}
+            {{else}}
+            value: {{ .Values.eureka.defaultZone.qa }}
+            {{- end}}
+          - name: ACTIVE
+            value: {{ .Values.spring.profiles }}  
+          - name: JAVA_OPTS
+            value: -Xms200m -Xmx1024m
+          - name: _JAVA_OPTIONS
+            value: -Xms200m -Xmx1024m
+          - name: PORT
+            value: {{ .Values.server.ports.default | quote }}
+          volumeMounts:
+          - name: host-time
+            mountPath: /etc/localtime
+      volumes:
+        - name: host-time
+          hostPath: 
+            path: /etc/localtime
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-ing-gateway-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.server.ports.default}}
+    targetPort: 6083         

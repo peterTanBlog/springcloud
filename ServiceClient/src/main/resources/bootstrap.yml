@@ -1,0 +1,55 @@
+server:
+  port: ${PORT:6081}
+---
+spring:
+  application:
+    name: ServiceClient
+  profiles:
+    active: ${ACTIVE:dev}
+---
+spring.profiles.include: dev
+spring:
+  profiles: local
+  cloud:
+    inetutils:
+      preferred-networks: ${PREFERRED_IP_PATTERN:.*}
+    config:
+        uri: http://10.48.64.35:31699
+        discovery:
+          enabled: false
+---
+spring:
+  profiles: dev
+  cloud:
+    inetutils:
+     preferred-networks: ${PREFERRED_IP_PATTERN:.*}
+    config:
+      discovery:
+        enabled: ${DISCONFIG:true}
+        service-id: ${CONFIG_SERVER:ConfigServer}
+---
+spring:
+  profiles: qa
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: ${CONFIG_SERVER:ConfigServer}
+---
+spring:
+  profiles: pd
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: ${CONFIG_SERVER:ConfigServer}
+---
+eureka:
+  instance:
+    lease-expiration-duration-in-seconds: 90
+    lease-renewal-interval-in-seconds: 20
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    service-url: 
+      defaultZone: ${EUREKA_SERVICEURL}

@@ -1,0 +1,8 @@
+name: "demo-nginx"
+namespace: springclouddemo
+
+imageSrc: nginx
+imageTag: 1.16.1
+
+labels:
+  appname: demo-nginx

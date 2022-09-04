@@ -1,0 +1,7 @@
+namespace: springclouddemo
+nginxservicename: svc-nginx
+nginxserviceport: 80
+gateservicename: svc-ing-gateway-gateway
+gateserviceport: 6083
+eurkaservicename: svc-ing-eureka-springclouddemoeureka
+eurkaserviceport: 6080

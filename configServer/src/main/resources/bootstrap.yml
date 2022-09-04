@@ -1,0 +1,29 @@
+spring:
+  profiles:
+    active: native
+  application:
+    name: ConfigServer
+  jmx:
+    enabled: false
+  cloud:
+    inetutils:
+      preferred-networks:
+      - ${PREFERRED_IP_PATTERN}
+    config:
+      server:
+        native:
+          add-label-locations: false
+          search-locations: file:${SEARCH_LOCATION}
+---
+eureka:
+  instance:
+    lease-expiration-duration-in-seconds: 90
+    lease-renewal-interval-in-seconds: 20
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    service-url: 
+      defaultZone: ${EUREKA_SERVICEURL}
+---
+server:
+  port: ${PORT:5056}  

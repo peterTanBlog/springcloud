@@ -1,0 +1,133 @@
+------------------------------使用阿里云镜像仓库----
+#上传soft文件至docker,k8smaster k8snode
+#将镜像推送至ali,ali免费版可以存300个
+https://help.aliyun.com/document_detail/60945.html?spm=a2c4g.11186623.6.542.48983d31EbMHWT
+#1)仅是安装docker 环境（下载soft文件 解压后上传docker机器上root 目录 ，soft目录下installDocker.sh）
+#docker version:18.09.7 k8s version:1.15.1
+tr -d '\r' </root/soft/installDocker.sh > /root/soft/installDocker_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installDocker_new.sh  init installDocker
+#登录阿里云：
+# docker login --username=test@1594726148325608 registry.cn-shenzhen.aliyuncs.com
+#密码：t12345678
+
+ #RAM用户控制台：
+ #test@1594726148325608.onaliyun.com
+ #密码：4DzBf)xUvq8hzY6B6QMlFR{K?Oq(rsNv
+ #https://cr.console.aliyun.com/cn-shenzhen/instance/repositories
+
+ #2)导入镜像：
+tr -d '\r' </root/soft/installDocker.sh > /root/soft/installDocker_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installDocker_new.sh  loadJavaDockerImage
+
+ #3)配置java环境：
+ ##配置java环境和MAVEN(maven库：/mavenFactory/repository)
+tr -d '\r' </root/soft/installDocker.sh > /root/soft/installDocker_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installDocker_new.sh    configJava
+
+ #4)build docker 新打开一个窗口执行 上传sprincloud代码至/root
+
+cd /root/springcloud/deployment
+
+# 5)alidev（build全部）如果mvn和java配置失败 请重新执行source /etc/profile
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev
+#单个
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev EurekaServer
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev configServer
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev ServiceClient
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev ServiceClientB
+tr -d '\r' <buildDocker.sh > buildDocker_bew.sh && chmod +x *.sh && ./buildDocker_bew.sh  -Dver=1.0.0 -Denv=aliyun_dev gateway
+
+##--------------安装k8s master和k8s node ------------
+#6)安装K8sMaster（soft目录下installk8sMaster.sh） 需要修改aliyun镜像仓库地址，用户户名和密码，k8smaster ip,k8s node ip
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh 
+#7)重新配置master
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh configMaster
+# 8)检查 master 初始化结果
+kubectl get nodes
+
+# 9)获得 join命令参数 
+kubeadm token create --print-join-command
+
+#10)安装Node:( (确保master 状态为ready 正常再操作node))（soft目录下installk8sNode.sh）
+#需要修改aliyun镜像仓库地址，用户户名和密码，k8smaster ip,k8s node ip
+tr -d '\r' </root/soft/installk8sNode.sh > /root/soft/installk8sNode.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sNode.sh_new.sh
+# 11)只在 worker 节点执行 设置masterip 和apiserver.demo
+echo "192.168.31.200 apiserver.demo" >> /etc/hosts
+
+# 12)执行第9步： kubeadm token create --print-join-command 命令的输出 
+
+# 13)只在 master 节点执行 直至nodes ready状态 等待 3-10 分钟
+kubectl get nodes -o wide
+
+#若一直没有ready失败则kubectl get pod -n kube-system pod是否是ready状态和running状态
+
+##14)在master安装Kubectl,helm
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh configKubectl
+
+#15)安装ingress 
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh installIngress
+
+# 16)记下kubord token
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJvYXJkIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Imt1Ym9hcmQtdXNlci10b2tlbi01OTk4ZiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJvYXJkLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJjMjMzM2Y2Mi00OTdlLTQwNGUtYmRmOS1kMWMwNjg4OWQwZWEiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3Vib2FyZDprdWJvYXJkLXVzZXIifQ.fGttYtIb3w6YrqYIrZodd7J0PXz5cCT8P7w7L_0V0ddCJY8gaEm-n5dTQurfigJuTcSUAzjJgHXAyp4sb-XZ8ma5jnnipZfW3543oiFo-gcbKwvVGPQYUqJ-UrCQlw_yW43iJ6Y7DzFPrVwfQ1ByfoUCDnEvDTLxG6yC3qNlzlVAsBMtreeUXqNl-xMIUAa-GQZL7gaddRiBQhmY96a67NFhqgiU8Lz_lv8NiQxAZT5ECDsoCl9-qzx7pm04I5W3tS2wPrew06Fqlpf0sxLWY__bd_SnTbFKlCGRA9_-h4uDZW9x3vn6FxfS-RT_o9Yd8GZYKr8I2P5cPZ8Xqx094w
+#查看pod :kubectl get pod --all-namespaces 
+# host文件设置  192.168.31.200 kuboard.yanwen.com  （换成虚拟机主机ip）
+#直至所有pod启动成功浏览器访问kuboard.yanwen.com 输入 "脚本最打印后token"
+##--------------安装k8s master和k8s node ------------
+
+
+
+##----------------------------部署代码------------------------------ 
+#17）确保kubectl master node确保是否是readey
+kubectl get nodes -o wide
+#代码master上传至： /root/springcloud/deployment
+#18）执行部署
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh createSecret
+
+tr -d '\r' </root/soft/installk8sMaster.sh > /root/soft/installk8sMaster.sh_new.sh  && chmod +x /root/soft/*.sh && /root/soft/installk8sMaster.sh_new.sh deploy
+
+#host设置：192.168.31.200  demodev.yanwen.com.cn eureka.intranet.local kuboard.yanwen.com demodev.intranet.local kuboard.yanwen.com （换成k8s master 节点 ip）
+
+demodev.yanwen.com.cn--ingress 配置 svc-nginx:80, nginx访问http://svc-ing-gateway-gateway:6083
+demodev.intranet.local --ingress 配置http://svc-ing-gateway-gateway:6083
+
+eureka.intranet.local ingress 配置svc-ing-eureka-springclouddemoeureka:6080
+
+#19）测试连接：前往kuboard.yanwen.com 进行查看应用启动日志
+
+eureka: eureka.intranet.local 
+gateway:
+http://demodev.yanwen.com.cn/searviceA/users/111
+http://demodev.yanwen.com.cn/searviceB/users/11
+内网
+http://demodev.intranet.local/searviceA/users/111
+http://demodev.intranet.local/searviceB/users/11
+
+
+扩容searviceA 待启动后 
+kubectl get deployment --all-namespaces
+kubectl scale --replicas=2 deployments/rs-serviceclient -n springclouddemo
+
+kubectl scale --replicas=1 deployments/rs-serviceclient -n springclouddemo
+
+在访问 测试ribbon负载均衡组件
+http://demodev.yanwen.com.cn/searviceB/users/11
+
+# 删除
+helm delete --pruge configserver 
+helm delete --pruge gateway 
+helm delete --pruge nginx 
+helm delete --pruge serviceclient 
+helm delete --pruge serviceclientb 
+helm delete --pruge springclouddemoeureka
+helm delete --pruge svcingress 
+
+# 单独部署：
+	  dir=/root/springcloud/deployment
+	cd $dir
+
+	tr -d '\r' <deploy.sh > deploy_bew.sh  && chmod +x $dir/*.sh   && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo -Dname=springclouddemoeureka  eureka
+	tr -d '\r' <deploy.sh > deploy_bew.sh  && chmod +x $dir/*.sh  && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=configserver configServer 
+	tr -d '\r' <deploy.sh > deploy_bew.sh  && chmod +x $dir/*.sh  && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=serviceclient ServiceClient
+	tr -d '\r' <deploy.sh > deploy_bew.sh   && chmod +x $dir/*.sh && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=serviceclientb ServiceClientB
+	tr -d '\r' <deploy.sh > deploy_bew.sh  && chmod +x $dir/*.sh  && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=svcingress ingress
+
+	tr -d '\r' <deploy.sh > deploy_bew.sh   && chmod +x $dir/*.sh && ./deploy_bew.sh  -Dver=1.0.0 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=gateway gateway
+    tr -d '\r' <deploy.sh > deploy_bew.sh  && chmod +x $dir/*.sh  && ./deploy_bew.sh  -Dver=1.16.1 -Denv=ali_dev -Dnamespace=springclouddemo  -Dname=nginx nginx
+	------------------------------使用阿里云镜像仓库----

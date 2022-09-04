@@ -1,0 +1,9 @@
+# 构建路由地址
+zuul:
+  routes:
+    # 这里可以自定义
+    userInfo: 
+      # 匹配的路由规则
+      path: /userInfo/**
+      # 路由的目标服务名
+      serviceId: SERVICECLIENT

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: ServiceClientB
+server:
+  port: ${SERVER_PORT:6082}
+  enable-self-preservation: false
+  eviction-interval-timer-in-ms: 50000
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id:  ${spring.application.name}(${spring.cloud.client.ip-address}:${server.port})
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 10
+  client:
+    service-url:
+      defaultZone:   ${EUREKA_SERVICEURL}

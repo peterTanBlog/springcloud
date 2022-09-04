@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: Turbine
+server:
+  port: ${SERVER_PORT:6085}
+  enable-self-preservation: false
+  eviction-interval-timer-in-ms: 50000
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id:  ${spring.application.name}(${spring.cloud.client.ip-address}:${server.port})
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 10
+  client:
+    service-url:
+      defaultZone:   ${EUREKA_SERVICEURL}
+turbine: 
+  combine-host-port: true
+  app-config: ServiceClient,ServiceClientB
+  cluster-name-expression: new String("default")
+  aggregator:
+    cluster-config: default
+  instanceUrlSuffix: hystrix.stream

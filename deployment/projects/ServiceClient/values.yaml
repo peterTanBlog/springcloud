@@ -1,0 +1,23 @@
+env: local
+
+name: serviceclient
+namespace: springclouddemolocal
+
+imageSrc: registry.cn-shenzhen.aliyuncs.com/xiaowendocker/serviceclient
+imageTag: 1.0.0
+
+replicas: 1
+
+labels:
+  appname: serviceclient
+  group: springclouddemo
+
+eureka:
+  defaultZone: 
+    qa: http://sts-eureka-cms-discovery-0.svc-eureka-cms-discovery:6080/eureka,http://sts-eureka-cms-discovery-1.svc-eureka-cms-discovery:6080/eureka
+    dev: http://sts-eureka-eurekatest-0.svc-eureka-eurekatest:6080/eureka,http://sts-eureka-eurekatest-1.svc-eureka-eurekatest:6080/eureka
+    local: http://sts-eureka-springbooteureka-0.svc-eureka-springbooteureka:6080/eureka/, http://sts-eureka-springbooteureka-1.svc-eureka-springbooteureka:6080/eureka/
+    localdev: http://sts-eureka-springclouddemoeureka-0.svc-eureka-springclouddemoeureka:6080/eureka/, http://sts-eureka-springclouddemoeureka-1.svc-eureka-springclouddemoeureka:6080/eureka/
+server:
+  ports: 
+    default: 6082

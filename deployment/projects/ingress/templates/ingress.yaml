@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-{{ .Values.nginxservicename }}-{{ uuidv4 | substr 0 8 }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    service.beta.kubernetes.io/alicloud-loadbalancer-force-override-listeners: "true"
+spec:
+  rules:
+  - host: demodev.yanwen.com.cn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.nginxservicename }}
+          servicePort: {{ .Values.nginxserviceport }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-{{ .Values.gateservicename }}-{{ uuidv4 | substr 0 8 }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    service.beta.kubernetes.io/alicloud-loadbalancer-force-override-listeners: "true"
+spec:
+  rules:
+  - host: demodev.intranet.local
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.gateservicename }}
+          servicePort: {{ .Values.gateserviceport }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ing-{{ .Values.eurkaservicename }}-{{ uuidv4 | substr 0 8 }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    service.beta.kubernetes.io/alicloud-loadbalancer-force-override-listeners: "true"
+spec:
+  rules:
+  - host: eureka.intranet.local
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.eurkaservicename }}
+          servicePort: {{ .Values.eurkaserviceport }}          

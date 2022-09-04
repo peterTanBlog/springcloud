@@ -1,0 +1,59 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rs-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    k8s.eip.work/workload: web
+    k8s.eip.work/displayName: Nginx Web Entry
+  labels:
+    k8s.eip.work/layer: web
+    k8s.eip.work/name: rs-{{ .Values.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+     {{ toYaml .Values.labels | trim | indent 4 }}
+  template:
+    metadata:
+      labels:
+       {{ toYaml .Values.labels | trim | indent 4 }}
+    spec:
+      containers:
+      - name: {{ .Values.name }}
+        image: {{ .Values.imageSrc }}:{{ .Values.imageTag }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http1
+          containerPort: 80
+        - name: http2
+          containerPort: 8080
+        volumeMounts:
+        - name: default-conf
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: default-conf
+        configMap:
+          name: demo-{{ .Values.name }}
+          items:
+          - key: conf
+            path: default.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+{{ toYaml .Values.labels | trim | indent 4 }}
+  type: ClusterIP
+  ports:
+  - name: http 
+    port: 80
+    targetPort: 80
+    protocol: TCP     
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP               

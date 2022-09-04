@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-{{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  conf: |
+    server {
+      listen [::]:80;
+      listen 80;
+      listen [::]:8080;
+      listen 8080;
+
+      server_name demodev.yanwen.com.cn;
+
+      location / {
+        proxy_pass http://svc-ing-gateway-gateway:6083;
+      }
+    }

@@ -1,0 +1,9 @@
+name: springbooteureka
+namespace: springclouddemolocal
+replicas: 2
+labels:
+  app: springbooteureka
+  role: register
+imageSrc: registry.cn-shenzhen.aliyuncs.com/xiaowendocker/eurekaserver
+imageTag: 1.0.0
+env: local

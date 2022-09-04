@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ServiceClient
+  profiles:
+    active: ${ACTIVE:dev}
+auth:
+  local:
+    auth:
+      username: token10061
+      password: 7uPbrpza
+  dev:
+    auth:
+      username: token10061
+      password: 7uPbrpza
+  qa:
+    auth:
+      username: token10061
+      password: RvUkcdAp
+  pd:
+    auth:
+      username: token269
+      password: bRUyGrwh
